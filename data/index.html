@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phan Huỳnh Văn Đô</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>HỆ THỐNG TƯỚI CÂY TỰ ĐỘNG</h1>
+        
+        <div class="status-box">
+            <h2>Trạng thái hệ thống</h2>
+            <div class="status-item">
+                <span class="label">Máy Bơm:</span>
+                <span id="led-state" class="value">--</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Nhiệt độ:</span>
+                <span id="temperature" class="value">-- °C</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Độ ẩm:</span>
+                <span id="humidity" class="value">-- %</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Thời gian:</span>
+                <span id="current-time" class="value">--:--:--</span>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="control-box">
+                <h2>Điều khiển thủ công</h2>
+                <div class="button-group">
+                    <button class="btn-on" onclick="toggleLed('on')">BẬT</button>
+                    <button class="btn-off" onclick="toggleLed('off')">TẮT</button>
+                </div>
+            </div>
+
+            <div class="control-box">
+                <h2>Hẹn giờ tự động</h2>
+                <form id="alarm-form" onsubmit="return false;">
+                    <div class="time-input">
+                        <div class="time-group">
+                            <label>Bật:</label>
+                            <input type="number" id="onHour" min="0" max="23" placeholder="Giờ" required>
+                            <span>:</span>
+                            <input type="number" id="onMinute" min="0" max="59" placeholder="Phút" required>
+                        </div>
+                        <div class="time-group">
+                            <label>Tắt:</label>
+                            <input type="number" id="offHour" min="0" max="23" placeholder="Giờ" required>
+                            <span>:</span>
+                            <input type="number" id="offMinute" min="0" max="59" placeholder="Phút" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-set" onclick="setAlarm()">CÀI ĐẶT</button>
+                </form>
+                <p id="alarm-status"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLed(action) {
+            fetch(`/${action}`)
+                .then(response => response.text())
+                .then(() => updateStatus());
+        }
+
+        function setAlarm() {
+            const onHour = document.getElementById('onHour').value;
+            const onMinute = document.getElementById('onMinute').value;
+            const offHour = document.getElementById('offHour').value;
+            const offMinute = document.getElementById('offMinute').value;
+
+            fetch(`/setAlarm?onHour=${onHour}&onMinute=${onMinute}&offHour=${offHour}&offMinute=${offMinute}`)
+                .then(response => response.text())
+                .then(message => {
+                    document.getElementById('alarm-status').textContent = message;
+                    setTimeout(() => {
+                        document.getElementById('alarm-status').textContent = "";
+                    }, 5000);
+                });
+        }
+
+        function updateStatus() {
+            fetch('/state')
+                .then(response => response.text())
+                .then(state => document.getElementById('led-state').textContent = state);
+            fetch('/temperature')
+                .then(response => response.text())
+                .then(temp => document.getElementById('temperature').textContent = temp + ' °C');
+            fetch('/humidity')
+                .then(response => response.text())
+                .then(humi => document.getElementById('humidity').textContent = humi + ' %');
+            fetch('/time')
+                .then(response => response.text())
+                .then(time => document.getElementById('current-time').textContent = time);
+        }
+
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
