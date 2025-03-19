@@ -7,8 +7,8 @@
 #include "config.h"
 
 // Cấu hình WiFi
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PASSWORD;
+const char* ssid = "Đô";         // Thay bằng tên WiFi của bạn
+const char* password = "12052004"; // Thay bằng mật khẩu WiFi của bạn
 
 // Khởi tạo Web Server, NTP Client và UART
 WebServer server(80);
@@ -109,6 +109,26 @@ void setup() {
 
 // Hàm vòng lặp chính
 void loop() {
+  // Kiểm tra kết nối WiFi
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Mất kết nối WiFi. Đang kết nối lại...");
+    WiFi.begin(ssid, password);
+    
+    // Chờ kết nối lại
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+      delay(500);
+      Serial.print(".");
+      attempts++;
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("\nĐã kết nối lại WiFi. IP: " + WiFi.localIP().toString());
+    } else {
+      Serial.println("\nKhông thể kết nối lại WiFi!");
+    }
+  }
+
   server.handleClient(); // Xử lý các yêu cầu từ web
   timeClient.update();  // Cập nhật thời gian từ NTP
 
